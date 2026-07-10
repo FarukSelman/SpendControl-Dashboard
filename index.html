@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>SpendControl-14 | Harcama Takip Paneli</title>
+
+<style>
+/* Mevcut stiller korunmuştur */
+body { font-family: Arial, sans-serif; background-color: #f4f6f8; margin: 0; }
+header { background-color: #2c3e50; color: white; padding: 15px; text-align: center; }
+.container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; }
+h2 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+form { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+input, select, button { padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+button { background-color: #3498db; color: white; border: none; cursor: pointer; }
+button:hover { background-color: #2980b9; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+th { background-color: #ecf0f1; }
+.summary { margin-top: 15px; font-weight: bold; }
+.badge { display: inline-block; background: #eaf2ff; color: #1e40af; padding: 8px 12px; border-radius: 20px; margin-top: 10px; font-weight: bold; }
+.score-tag { background: #f39c12; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>SpendControl-14</h1>
+    <p>Kişisel Harcama Takip Paneli</p>
+</header>
+
+<div class="container">
+
+    <h2>Kullanıcı Girişi</h2>
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="username" placeholder="Adınızı girin">
+        <button onclick="login()">Giriş Yap</button>
+        <p><strong>Aktif Kullanıcı:</strong> <span id="activeUser">-</span></p>
+    </div>
+
+    <h2>Harcama Ekle</h2>
+    <form id="expenseForm">
+        <input type="date" id="date" required>
+        <input type="number" id="amount" placeholder="Tutar (TL)" required>
+        <select id="category">
+            <option>Gıda</option>
+            <option>Ulaşım</option>
+            <option>Eğlence</option>
+            <option>Eğitim</option>
+            <option>Diğer</option>
+        </select>
+        <select id="awarenessScore" title="Farkındalık Puanı (1: Gereksiz, 5: Çok Gerekli)">
+            <option value="" disabled selected>Farkındalık (1-5)</option>
+            <option value="1">1 - Gereksiz</option>
+            <option value="2">2 - Az Gerekli</option>
+            <option value="3">3 - Normal</option>
+            <option value="4">4 - Gerekli</option>
+            <option value="5">5 - Çok Gerekli</option>
+        </select>
+        <button type="submit">Ekle</button>
+    </form>
+
+    <h2>Harcama Listesi</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Kullanıcı</th>
+                <th>Tarih</th>
+                <th>Tutar</th>
+                <th>Kategori</th>
+                <th>Farkındalık</th>
+                <th>Sil</th>
+            </tr>
+        </thead>
+        <tbody id="expenseTable"></tbody>
+    </table>
+
+    <div class="summary">
+        Toplam Harcama: <span id="total">0</span> TL
+    </div>
+
+    <div class="badge">
+        📊 Ortalama Günlük Harcama: <span id="average">0</span> TL
+    </div>
+
+    <h2>Kategori Bazlı Toplamlar</h2>
+    <ul id="categoryTotals"></ul>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <canvas id="categoryChart" width="400" height="250"></canvas>
+        <canvas id="pieChart" width="250" height="250"></canvas>
+    </div>
+
+    <h2>Günlük Harcama Grafiği</h2>
+    <canvas id="chart" width="800" height="250"></canvas>
+
+</div>
+
+<script>
+const form = document.getElementById("expenseForm");
+const table = document.getElementById("expenseTable");
+const totalEl = document.getElementById("total");
+const avgEl = document.getElementById("average");
+const categoryList = document.getElementById("categoryTotals");
+
+// Canvas Contextleri
+const dailyCtx = document.getElementById("chart").getContext("2d");
+const categoryCtx = document.getElementById("categoryChart").getContext("2d");
+const pieCtx = document.getElementById("pieChart").getContext("2d");
+
+const categoryColors = {
+    "Gıda": "#e74c3c",
+    "Ulaşım": "#3498db",
+    "Eğlence": "#9b59b6",
+    "Eğitim": "#2ecc71",
+    "Diğer": "#f1c40f"
+};
+
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let currentUser = localStorage.getItem("currentUser");
+document.getElementById("activeUser").textContent = currentUser || "-";
+
+function render() {
+    table.innerHTML = "";
+    categoryList.innerHTML = "";
+
+    let total = 0;
+    let categories = {};
+    let dailyTotals = {};
+
+    // Sadece aktif kullanıcıya ait harcamaları filtrele
+    const userExpenses = expenses.filter(e => e.user === currentUser);
+
+    userExpenses.forEach((e, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${e.user}</td>
+            <td>${e.date}</td>
+            <td>${e.amount} TL</td>
+            <td>${e.category}</td>
+            <td><span class="score-tag">⭐ ${e.score || '-'}</span></td>
+            <td><button style="background:#e74c3c" onclick="deleteExpense(${index})">Sil</button></td>
+        `;
+        table.appendChild(row);
+
+        total += e.amount;
+        categories[e.category] = (categories[e.category] || 0) + e.amount;
+        dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount;
+    });
+
+    totalEl.textContent = total;
+    const days = Object.keys(dailyTotals).length;
+    avgEl.textContent = days ? (total / days).toFixed(2) : 0;
+
+    for (let c in categories) {
+        const li = document.createElement("li");
+        li.textContent = `${c}: ${categories[c]} TL`;
+        categoryList.appendChild(li);
+    }
+
+    drawCategoryChart(categories);
+    drawPieChart(categories);
+    drawDailyChart(dailyTotals);
+
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+}
+
+function deleteExpense(userIndex) {
+    // Tüm listedeki gerçek indexi bulup siler
+    const userExpenses = expenses.filter(e => e.user === currentUser);
+    const toDelete = userExpenses[userIndex];
+    const realIndex = expenses.indexOf(toDelete);
+    
+    if (realIndex > -1) {
+        expenses.splice(realIndex, 1);
+        render();
+    }
+}
+
+// Grafik çizim fonksiyonları (Mevcut mantık korunmuştur)
+function drawCategoryChart(categories) {
+    const canvas = document.getElementById("categoryChart");
+    categoryCtx.clearRect(0,0,canvas.width,canvas.height);
+    const labels = Object.keys(categories);
+    const values = Object.values(categories);
+    const max = Math.max(...values, 1);
+
+    labels.forEach((cat,i)=>{
+        const h=(values[i]/max)*150;
+        const x=i*70+40;
+        const y=canvas.height-h-30;
+        categoryCtx.fillStyle=categoryColors[cat] || "#95a5a6";
+        categoryCtx.fillRect(x,y,40,h);
+        categoryCtx.fillStyle="#000";
+        categoryCtx.font = "10px Arial";
+        categoryCtx.fillText(values[i], x, y-5);
+        categoryCtx.fillText(cat, x, canvas.height-10);
+    });
+}
+
+function drawPieChart(categories) {
+    const canvas = document.getElementById("pieChart");
+    pieCtx.clearRect(0,0,canvas.width,canvas.height);
+    const total = Object.values(categories).reduce((a,b)=>a+b,0);
+    if(total === 0) return;
+    let startAngle = 0;
+
+    for (let cat in categories) {
+        const slice = categories[cat] / total;
+        const angle = slice * 2 * Math.PI;
+        pieCtx.beginPath();
+        pieCtx.moveTo(125,125);
+        pieCtx.fillStyle = categoryColors[cat] || "#95a5a6";
+        pieCtx.arc(125,125,100,startAngle,startAngle+angle);
+        pieCtx.fill();
+        startAngle += angle;
+    }
+}
+
+function drawDailyChart(days) {
+    const canvas = document.getElementById("chart");
+    dailyCtx.clearRect(0,0,canvas.width,canvas.height);
+    const labels = Object.keys(days).sort();
+    const values = labels.map(d => days[d]);
+    const max = Math.max(...values,1);
+
+    labels.forEach((d,i)=>{
+        const h=(values[i]/max)*180;
+        const x=i*70+50;
+        const y=canvas.height-h-30;
+        dailyCtx.fillStyle="#3498db";
+        dailyCtx.fillRect(x,y,40,h);
+        dailyCtx.fillStyle="#000";
+        dailyCtx.fillText(values[i],x,y-5);
+        dailyCtx.fillText(d.split("-").slice(1).join("/"), x, canvas.height-10);
+    });
+}
+
+function login() {
+    const name = document.getElementById("username").value.trim();
+    if(!name) return alert("İsim giriniz");
+    currentUser=name;
+    localStorage.setItem("currentUser",name);
+    document.getElementById("activeUser").textContent=name;
+    render();
+}
+
+form.addEventListener("submit", e => {
+    e.preventDefault();
+    if(!currentUser) return alert("Önce giriş yapın");
+    
+    const score = document.getElementById("awarenessScore").value;
+    if(!score) return alert("Lütfen bir farkındalık puanı seçin");
+
+    expenses.push({
+        user: currentUser,
+        date: document.getElementById("date").value,
+        amount: Number(document.getElementById("amount").value),
+        category: document.getElementById("category").value,
+        score: score // Puan kaydediliyor
+    });
+    
+    form.reset();
+    render();
+});
+
+render();
+</script>
+
+</body>
+</html>
