@@ -1,38 +1,152 @@
-# 💳 SpendControl Dashboard (Harcama Takip Paneli)
+# 💳 SpendControl Dashboard (Expense Tracking Dashboard)
 
-Bu proje; kullanıcıların günlük gelir ve giden dengelerini kategorize ederek takip etmelerini, harcama farkındalık skorlarını analiz etmelerini ve bütçe durumlarını izlemelerini sağlayan, harici hiçbir kütüphane kullanılmadan **Vanilla JavaScript** ile geliştirilmiş uçtan uca bir tek sayfa uygulamasıdır (SPA).
-
----
-
-## 🛠️ Öne Çıkan Teknik Özellikler
-- **State Management & Kalıcılık:** Veriler tarayıcı hafızasında (**Local Storage**) kullanıcı bazlı olarak saklanır. Sayfa yenilense veya tarayıcı kapatılsa bile durum (state) korunur.
-- **Custom Canvas Graphics:** Grafik gösterimi için Chart.js gibi harici kütüphaneler yerine, ham **HTML5 Canvas API** (`2D Context`) kullanılarak matematiksel oranlamalarla sıfırdan dinamik sütun grafik motoru yazılmıştır.
-- **Dinamik Filtreleme Hattı:** Girilen harcamalar; kategori filtreleri, arama sorguları ve bütçe durumlarına göre asenkron DOM manipülasyonu ile anlık olarak filtrelenir.
-- **Akıllı Bütçe Algoritması:** Toplam harcama miktarı belirlenen bütçe limitini aştığında sistem otomatik olarak CSS tabanlı dinamik uyarı sınıflarını tetikler.
+SpendControl Dashboard, kullanıcıların gelir ve giderlerini kolayca takip edebilmeleri, bütçe durumlarını analiz edebilmeleri ve harcama alışkanlıklarını görselleştirebilmeleri için geliştirilen **Vanilla JavaScript** tabanlı tek sayfa (SPA) bir web uygulamasıdır. Projede herhangi bir frontend framework veya harici grafik kütüphanesi kullanılmamış, tüm işlevler HTML, CSS ve JavaScript ile geliştirilmiştir.
 
 ---
 
-## 🏗️ Proje Yapısı
+# 🛠️ Öne Çıkan Özellikler
+
+## 📊 Gelir ve Gider Yönetimi
+
+- Gelir ve gider kayıtları oluşturma
+- Harcamaları kategori bazında takip etme
+- Toplam gelir, toplam gider ve kalan bütçeyi hesaplama
+
+---
+
+## 💾 Local Storage Desteği
+
+Uygulama verileri tarayıcının **Local Storage API** kullanılarak saklanmaktadır.
+
+- Sayfa yenilendiğinde veriler korunur.
+- Tarayıcı kapatılıp tekrar açıldığında kayıtlar kaybolmaz.
+- Harici veritabanına ihtiyaç duyulmaz.
+
+---
+
+## 📈 Canvas API ile Dinamik Grafik
+
+Harici grafik kütüphaneleri kullanılmadan tamamen **HTML5 Canvas API** ile dinamik sütun grafikleri oluşturulmuştur.
+
+Grafik;
+
+- Harcama kategorilerini,
+- Harcama miktarlarını,
+- Görsel karşılaştırmaları
+
+gerçek zamanlı olarak göstermektedir.
+
+---
+
+## 🔍 Dinamik Filtreleme
+
+Kullanıcılar kayıtlarını;
+
+- Kategoriye göre
+- Arama kelimesine göre
+
+anlık olarak filtreleyebilir.
+
+Filtreleme işlemleri JavaScript ile dinamik DOM güncellemesi kullanılarak gerçekleştirilmektedir.
+
+---
+
+## ⚠️ Akıllı Bütçe Takibi
+
+Belirlenen bütçe limiti aşıldığında sistem otomatik olarak kullanıcıyı uyarır.
+
+- Dinamik CSS sınıfları uygulanır.
+- Bütçe durumu görsel olarak vurgulanır.
+
+---
+
+# 🏗️ Proje Yapısı
+
 ```text
 SpendControl-Dashboard/
 │
-├── index.html          # HTML yapısı, inline CSS stilleri ve Vanilla JS lojikleri
-└── README.md           # Proje dökümantasyonu
+├── index.html          # HTML, CSS ve JavaScript kodları
+└── README.md           # Proje dokümantasyonu
 ```
-🚀 Kullanılan Teknolojiler
-  HTML5 (Canvas API & Yapısal Düzen)
 
-  CSS3 (Flexbox, Grid Sistemleri ve Dinamik Uyarı Arayüzleri)
+---
 
-  Vanilla JavaScript (ES6+) (Local Storage API, Data Filtering, Asynchronous DOM Rendering, Canvas 2D Painting)
+# 🚀 Kullanılan Teknolojiler
 
-🔧 Kurulum ve Çalıştırma
-  Projenin çalışması için herhangi bir paket yöneticisi (npm, yarn) veya harici bir bağımlılık kurulumuna gerek yoktur.
+## Frontend
 
-1-Projeyi bilgisayarınıza klonlayın veya index.html dosyasını indirin:
+- HTML5
+- CSS3
+- Vanilla JavaScript (ES6+)
+
+## Kullanılan Web API'leri
+
+- Local Storage API
+- Canvas 2D API
+
+## Arayüz
+
+- Flexbox
+- CSS Grid
+- Responsive Layout
+
+---
+
+# 🔧 Kurulum
+
+## 1. Repoyu Klonlayın
+
 ```bash
-git clone [https://github.com/FarukSelman/SpendControl-Dashboard.git](https://github.com/FarukSelman/SpendControl-Dashboard.git)
+git clone https://github.com/FarukSelman/SpendControl-Dashboard.git
 ```
-2-index.html dosyasını herhangi bir modern web tarayıcısında (Chrome, Edge, Safari, Firefox) çift tıklayarak veya bir yerel sunucu (Live Server vb.) üzerinden doğrudan çalıştırabilirsiniz.
 
-💡 Bu proje; tarayıcı depolama birimleri, gelişmiş DOM manipülasyonu ve grafik kütüphanelerinin arkasında yatan matematiksel Canvas çizim mantıklarını kavramak amacıyla geliştirilmiş bağımsız bir ön yüz (Frontend) çalışmasıdır.
+## 2. Proje Klasörüne Girin
+
+```bash
+cd SpendControl-Dashboard
+```
+
+## 3. Uygulamayı Çalıştırın
+
+Herhangi bir kurulum gerektirmez.
+
+Aşağıdaki yöntemlerden biri kullanılabilir:
+
+- `index.html` dosyasını doğrudan çift tıklayarak açın.
+- VS Code **Live Server** eklentisi ile çalıştırın.
+- Herhangi bir modern web tarayıcısında açın.
+
+---
+
+# 📈 Uygulama Akışı
+
+1. Gelir veya gider kaydı oluşturulur.
+2. Kategori seçilir.
+3. Kayıt Local Storage'a kaydedilir.
+4. Toplam bütçe otomatik hesaplanır.
+5. Canvas grafiği güncellenir.
+6. Filtreleme ve arama işlemleri gerçek zamanlı uygulanır.
+7. Bütçe limiti aşılırsa kullanıcı uyarılır.
+
+---
+
+# 💡 Projenin Amacı
+
+Bu çalışma;
+
+- Vanilla JavaScript ile uygulama geliştirmek,
+- Local Storage kullanımını öğrenmek,
+- DOM manipülasyonu becerilerini geliştirmek,
+- HTML5 Canvas API ile grafik oluşturmak,
+- Dinamik kullanıcı arayüzleri geliştirmek,
+- Frontend geliştirme pratiği kazanmak
+
+amacıyla hazırlanmıştır.
+
+---
+
+# 👨‍💻 Geliştirici
+
+**Faruk Selman**
+
+GitHub: https://github.com/FarukSelman
